@@ -14,7 +14,33 @@
    <string>Dialog</string>
   </property>
   <property name="styleSheet">
-   <string notr="true"/>
+   <string notr="true"> QDialog {
+        background-color: #F0F0F0;
+        border: 1px solid #D0D0D0;
+        border-radius: 5px;
+    }
+
+    QLabel {
+        font-family: Arial;
+        font-size: 14px;
+    }
+
+    QPushButton {
+        background-color: #94baff; /* Change to your desired color */
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+
+    QPushButton:hover {
+        background-color: #6c8de8; /* Darker shade for hover effect */
+    }
+
+    QPushButton:pressed {
+        background-color: #5373c7; /* Even darker shade for pressed effect */
+    }</string>
   </property>
   <widget class="QFrame" name="signin">
    <property name="geometry">
@@ -26,7 +52,7 @@
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">gridline-color: qconicalgradient(cx:0.5, cy:0.5, angle:0, stop:0 rgba(255, 255, 255, 255), stop:0.373979 rgba(255, 255, 255, 255), stop:0.373991 rgba(33, 30, 255, 255), stop:0.624018 rgba(33, 30, 255, 255), stop:0.624043 rgba(255, 0, 0, 255), stop:1 rgba(255, 0, 0, 255));</string>
+    <string notr="true"/>
    </property>
    <layout class="QFormLayout" name="formLayout">
     <property name="rowWrapPolicy">
@@ -38,7 +64,7 @@
        <string notr="true"/>
       </property>
       <property name="text">
-       <string>USER</string>
+       <string>USERNAME</string>
       </property>
      </widget>
     </item>
@@ -61,6 +87,25 @@
     </item>
     <item row="1" column="1">
      <widget class="QLineEdit" name="passwordLineEdit">
+      <property name="styleSheet">
+       <string notr="true">QLineEdit {
+        background-color: #FFFFFF;
+        border: 1px solid #C0C0C0;
+        border-radius: 5px;
+        padding: 4px;
+        font-family: Arial;
+        font-size: 14px;
+    }
+
+    QLineEdit:focus {
+        border-color: #007BFF;
+        outline: none;
+    }
+
+    QLineEdit:hover {
+        background-color: #F0F0F0;
+    }</string>
+      </property>
       <property name="echoMode">
        <enum>QLineEdit::Password</enum>
       </property>
@@ -69,7 +114,23 @@
     <item row="0" column="1">
      <widget class="QLineEdit" name="usernameLineEdit">
       <property name="styleSheet">
-       <string notr="true">alternate-background-color: qlineargradient(spread:pad, x1:1, y1:1, x2:1, y2:0, stop:0 rgba(255, 255, 255, 255), stop:1 rgba(255, 255, 255, 255));</string>
+       <string notr="true">QLineEdit {
+        background-color: #FFFFFF;
+        border: 1px solid #C0C0C0;
+        border-radius: 5px;
+        padding: 4px;
+        font-family: Arial;
+        font-size: 14px;
+    }
+
+    QLineEdit:focus {
+        border-color: #007BFF;
+        outline: none;
+    }
+
+    QLineEdit:hover {
+        background-color: #F0F0F0;
+    }</string>
       </property>
      </widget>
     </item>

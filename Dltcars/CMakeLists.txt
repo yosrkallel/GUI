@@ -15,7 +15,9 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 set(PROJECT_SOURCES
         main.cpp
         res.qrc
-
+        checkdemo.h
+        checkdemo.cpp
+        checkdemo.ui
         mainwindow.cpp
         dialog.cpp
 

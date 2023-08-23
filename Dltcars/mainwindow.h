@@ -8,6 +8,9 @@
 #include <QTextEdit>
 #include <QFileSystemModel>
 #include <QTreeView>
+#include "checkdemo.h"
+
+#include <QStringList>
 
 
 
@@ -24,27 +27,30 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
+    void on_actionAdd_triggered();
     void ReadJson(const QString &path);
-    //void ReadJson(const QString &path, const QString &filterKey = "", const QString &filterValue = "");
-   // bool logObjectContainsFilterText(const QJsonObject &logObject, const QString &filterText) const;
-    //void filtertable ();
 
 
 private slots:
     void actionOpen();
     void actionSave();
-
+    void actionAdd();
+    void on_filterButton_clicked();
+    void treeViewClicked(const QModelIndex &index);
+    void listViewclicked(const QModelIndex &index);
     void on_treeView_doubleClicked(const QModelIndex &index);
 
 public slots:
-    void on_filterButton_clicked();
-
     void onLoginAction();
 
 
 signals:
     void jsonFileOpened(const QString &path);
+    void ecuApidFiltersChangedSignal(const QStringList &ecuFilters, const QStringList &apidFilters);
+private slots:
+
+    void applyFilter(const QJsonArray& filteredData);
+
 
 private:
     Ui::DLTCars *ui;
@@ -54,7 +60,10 @@ private:
     QJsonObject jsonObject;
     QLineEdit *filterLineEdit;
     QSortFilterProxyModel *filterProxyModel;
+    QString ecuIdFilter;
+    QString appIdFilter;
 
+    CheckDemo* checkDemoDialog;
 
 
 };
