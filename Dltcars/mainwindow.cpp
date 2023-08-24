@@ -33,6 +33,8 @@
 #include <QHBoxLayout>
 #include <QCheckBox>
 #include <QLineEdit>
+#include <QTextStream>
+
 
 
 
@@ -48,14 +50,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->treeView->setModel(dmodel);
     fmodel = new QFileSystemModel(this);
     fmodel->setFilter(QDir::NoDotAndDotDot | QDir::Files);
-    // Set the name filter to show only JSON files
     fmodel->setNameFilters(QStringList() << "*.json");
-    fmodel->setNameFilterDisables(false); // Show only files that match the name filter
+    fmodel->setNameFilterDisables(false);
     ui->listView->setModel(fmodel);
-   /* fmodel = new QFileSystemModel(this);
-    dmodel ->setFilter (QDir::NoDotAndDotDot|QDir::Files);
-    ui->listView->setModel(fmodel);
-*/
+
     QMenuBar *menuBar = new QMenuBar(this);
     QMenu *fileMenu = menuBar->addMenu("File");
     QMenu *filterMenu = menuBar->addMenu("Filter");
@@ -64,9 +62,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(addAction, &QAction::triggered, this, &MainWindow::on_actionAdd_triggered);
     addAction->setIcon(QIcon(":/images/add1"));
 
-    /*QAction *addAction = filterMenu->addAction("Add");
-    connect(addAction, &QAction::triggered, this, &MainWindow::actionAdd);*/
-
     QAction *openAction = fileMenu->addAction("Open");
     connect(openAction, &QAction::triggered, this, &MainWindow::actionOpen);
     openAction->setIcon(QIcon(":/images/open.png"));
@@ -74,20 +69,16 @@ MainWindow::MainWindow(QWidget *parent)
     QAction *saveAction = fileMenu->addAction("Save");
     connect(saveAction, &QAction::triggered, this, &MainWindow::actionSave);
     saveAction->setIcon(QIcon(":/images/save.png"));
-    //connect(ui->treeView, &QTreeView::doubleClicked, this, &MainWindow::actionOpen);
 
     connect(ui->treeView, &QTreeView::clicked, this, &MainWindow::treeViewClicked);
 
     connect(ui->listView, &QListView::clicked, this, &MainWindow::listViewclicked);
-  //  connect(ui->filterButton, &QPushButton::clicked, this, &MainWindow::on_filterButton_clicked);
     ui->toolBar->addAction(openAction);
     ui->toolBar->addAction(saveAction);
     ui->toolBar->addAction(addAction);
-
     CheckDemo *checkDemo = new CheckDemo(this);
-
-    // Connecter le signal de CheckDemo au slot de MainWindow
     connect(checkDemo, &CheckDemo::ecuApidFiltersChangedSignal, this, &MainWindow::applyFilter);
+
 
     // Create an instance of the CheckDemo dialog
     checkDemoDialog = new CheckDemo(this);
@@ -95,9 +86,8 @@ MainWindow::MainWindow(QWidget *parent)
     // Connect the ecuApidFiltersChangedSignal signal from the dialog to the applyFilter slot in the main window
     connect(checkDemoDialog, &CheckDemo::ecuApidFiltersChangedSignal, this, &MainWindow::applyFilter);
 
-  // debugTextEdit = findChild<QTextEdit*>("debugTextEdit");
+   // debugTextEdit = findChild<QTextEdit*>("debugTextEdit");
 
-    // ... Le reste du code ...
     layout()->setMenuBar(menuBar);
 }
 void MainWindow::listViewclicked(const QModelIndex &index)
@@ -113,7 +103,6 @@ void MainWindow::on_treeView_doubleClicked(const QModelIndex &index)
     QString spath = dmodel ->fileInfo(index).absoluteFilePath();
     ui->treeView->setRootIndex(fmodel->setRootPath(spath));
 }
-// Dans MainWindow
 void MainWindow::on_actionAdd_triggered()
 {
     // Créer une instance de la fenêtre CheckDemo
@@ -152,6 +141,8 @@ void MainWindow::treeViewClicked(const QModelIndex &index)
         ReadJson(filePath);
     }
 }
+
+
 void MainWindow::applyFilter(const QJsonArray& filteredData)
 {
     // Clear the existing table contents
@@ -180,163 +171,7 @@ void MainWindow::applyFilter(const QJsonArray& filteredData)
     }
 }
 
-/*
-void MainWindow::applyFilter(const QStringList &ecuFilters, const QStringList &apidFilters,
-                             const QStringList &ctidFilters, const QStringList &payloadFilters)
-{
-    // Get the filter text from the QLineEdit
-    QString filterText = ui->filterLineEdit->text().trimmed(); // Trim leading/trailing spaces
 
-    // Clear the filteredTableWidget and set the same header labels
-    ui->filteredTableWidget->clearContents();
-    ui->filteredTableWidget->setRowCount(0);
-    int columnCount = 8;
-    ui->filteredTableWidget->setColumnCount(columnCount);
-    int rowCount = ui->tableWidget->rowCount();
-
-    // Set table headers
-    QStringList headerLabels;
-    headerLabels << "Log Key" << "Type" << "Time" << "Time_stamp" << "Ecu_id" << "Apid" << "Ctid" << "Payload";
-    ui->filteredTableWidget->setHorizontalHeaderLabels(headerLabels);
-    ui->filteredTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-
-    QList<int> filterlist;
-
-    // Loop through the rows of the original table and check if any cell contains the filter text
-    for (int row = 0; row < rowCount; row++)
-    {
-        bool rowMatchesFilter = false;
-        for (int col = 0; col < columnCount; col++)
-        {
-            QTableWidgetItem* item = ui->tableWidget->item(row, col);
-            if (item && item->text().contains(filterText, Qt::CaseInsensitive))
-            {
-                rowMatchesFilter = true;
-                break; // No need to continue checking other columns in this row
-            }
-        }
-        if (rowMatchesFilter)
-        {
-            filterlist.append(row);
-        }
-    }
-
-    // Filter based on ecuFilters, apidFilters, ctidFilters and payloadFilters
-    for (int i = filterlist.size() - 1; i >= 0; --i)
-    {
-        int rowIndex = filterlist[i];
-        QTableWidgetItem* ecuItem = ui->tableWidget->item(rowIndex, 4); // Assuming Ecu_id column is at index 4
-        QTableWidgetItem* apidItem = ui->tableWidget->item(rowIndex, 5); // Assuming Apid column is at index 5
-        QTableWidgetItem* ctidItem = ui->tableWidget->item(rowIndex, 6); // Assuming Ctid column is at index 6
-        QTableWidgetItem* payloadItem = ui->tableWidget->item(rowIndex, 7); // Assuming Payload column is at index 7
-
-        bool ecuMatched = ecuFilters.isEmpty() || ecuFilters.contains(ecuItem->text());
-        bool apidMatched = apidFilters.isEmpty() || apidFilters.contains(apidItem->text());
-        bool ctidMatched = ctidFilters.isEmpty() || ctidFilters.contains(ctidItem->text());
-        bool payloadMatched = payloadFilters.isEmpty() || payloadFilters.contains(payloadItem->text());
-
-        if (!ecuMatched || !apidMatched || !ctidMatched || !payloadMatched)
-        {
-            filterlist.removeAt(i);
-        }
-    }
-
-    // Clear and set up the filteredTableWidget
-    ui->filteredTableWidget->clearContents();
-    ui->filteredTableWidget->setRowCount(0);
-    ui->filteredTableWidget->setColumnCount(columnCount);
-    ui->filteredTableWidget->setHorizontalHeaderLabels(headerLabels);
-    ui->filteredTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-
-    // Populate the filteredTableWidget with the filtered log objects
-    for (int i = 0; i < filterlist.size(); ++i)
-    {
-        int rowIndex = filterlist[i];
-        if (rowIndex < rowCount)
-        {
-            int newRow = ui->filteredTableWidget->rowCount();
-            ui->filteredTableWidget->insertRow(newRow);
-
-            for (int col = 0; col < columnCount; col++)
-            {
-                QTableWidgetItem* originalItem = ui->tableWidget->item(rowIndex, col);
-                if (originalItem)
-                {
-                    QTableWidgetItem* newItem = new QTableWidgetItem(originalItem->text());
-                    ui->filteredTableWidget->setItem(newRow, col, newItem);
-                }
-            }
-        }
-    }
-}
-
-
-void MainWindow::onEcuApidFiltersChanged(const QStringList &ecuFilters, const QStringList &apidFilters)
-{
-    // Implement the filtering logic here based on the ecuFilters and apidFilters
-    // For example, update the filteredTableWidget according to the selected filters
-
-    // Clear the existing contents of the filteredTableWidget
-    ui->filteredTableWidget->clearContents();
-    ui->filteredTableWidget->setRowCount(0);
-
-    // Get the number of rows in the original tableWidget
-    int rowCount = ui->tableWidget->rowCount();
-
-    // Loop through the rows of the original tableWidget
-    for (int row = 0; row < rowCount; ++row)
-    {
-        QString ecuId = ui->tableWidget->item(row, 4)->text();
-        QString apid = ui->tableWidget->item(row, 5)->text();
-
-        // Check if the ecuId and apid match the selected filters
-        if (ecuFilters.contains(ecuId) && apidFilters.contains(apid))
-        {
-            // If both filters match, add a new row to the filteredTableWidget
-            int newRow = ui->filteredTableWidget->rowCount();
-            ui->filteredTableWidget->insertRow(newRow);
-
-            // Copy the content of each cell from the original tableWidget to the filteredTableWidget
-            for (int col = 0; col < ui->tableWidget->columnCount(); ++col)
-            {
-                QTableWidgetItem *item = ui->tableWidget->item(row, col);
-                QTableWidgetItem *clonedItem = item->clone();
-                ui->filteredTableWidget->setItem(newRow, col, clonedItem);
-            }
-        }
-    }
-}
-
-
-// Add the applyFilter function to handle the filtering
-void MainWindow::applyFilter(const QString &ecuIdFilter, const QString &appIdFilter)
-{
-    ui->filteredTableWidget->clearContents();
-    ui->filteredTableWidget->setRowCount(0);
-
-    int filteredRowCount = 0;
-    for (int row = 0; row < ui->tableWidget->rowCount(); row++)
-    {
-        QString ecuId = ui->tableWidget->item(row, 4)->text(); // Assuming column 4 contains the Ecu_id
-        QString appId = ui->tableWidget->item(row, 5)->text(); // Assuming column 5 contains the Apid
-
-        if ((ecuIdFilter.isEmpty() || ecuId.contains(ecuIdFilter, Qt::CaseInsensitive)) &&
-            (appIdFilter.isEmpty() || appId.contains(appIdFilter, Qt::CaseInsensitive)))
-        {
-            ui->filteredTableWidget->setRowCount(filteredRowCount + 1);
-            for (int col = 0; col < ui->tableWidget->columnCount(); col++)
-            {
-                QTableWidgetItem* item = new QTableWidgetItem(ui->tableWidget->item(row, col)->text());
-                ui->filteredTableWidget->setItem(filteredRowCount, col, item);
-            }
-            filteredRowCount++;
-        }
-    }
-
-    // Adjust the width of the columns based on the content
-    ui->filteredTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-}
-*/
 MainWindow::~MainWindow()
 {
     delete ui;
@@ -362,18 +197,7 @@ void MainWindow::actionAdd()
     // Affichez la fenêtre de dialogue modale
     checkDemoDialog.exec();
 }
-/*void MainWindow::actionAdd()
-{
-    QDialog *dialog = new QDialog();
-    dialog ->setMinimumHeight(240);
-    dialog ->setMinimumWidth(350);
-    QVBoxLayout *layout = new QVBoxLayout;
-    layout->addWidget(dialog);
-    dialog->setLayout(layout);
 
-    dialog ->show();
-
-}*/
 void MainWindow::ReadJson(const QString &path)
 {
     QFile file(path);
@@ -394,93 +218,89 @@ void MainWindow::ReadJson(const QString &path)
         {
             jsonObject = document.object(); // Assign the JSON object to the member variable
 
-        if (jsonObject.contains("logging"))
-        {
-            QJsonObject loggingObject = jsonObject["logging"].toObject();
-            QStringList logKeys = loggingObject.keys();
-            //rendre en general le nb col et de lig
-            int maxRowCount = 60;
-            int rowCount = qMin(maxRowCount, logKeys.size());
-            ui->tableWidget->setRowCount(rowCount);
-            int columnCount = 8;
-            ui->tableWidget->setColumnCount(columnCount);
-
-            // Set table headers
-            QStringList headerLabels;
-            headerLabels << "Log Key" << "Type" << "Time" << "Time_stamp" << "Ecu_id" << "Apid" << "Ctid" << "Payload";
-            ui->tableWidget->setHorizontalHeaderLabels(headerLabels);
-
-            int row = 0;
-            for (const auto &logKey : logKeys)
+            if (jsonObject.contains("logging"))
             {
-                QJsonObject logObject = loggingObject[logKey].toObject();
-                ui->tableWidget->setItem(row, 0, new QTableWidgetItem(logKey));
-                ui->tableWidget->setItem(row, 1, new QTableWidgetItem(logObject["Type"].toString()));
-                ui->tableWidget->setItem(row, 2, new QTableWidgetItem(logObject["Time"].toString()));
-                ui->tableWidget->setItem(row, 3, new QTableWidgetItem(logObject["Time_stamp"].toString()));
-                ui->tableWidget->setItem(row, 4, new QTableWidgetItem(logObject["Ecu_id"].toString()));
-                ui->tableWidget->setItem(row, 5, new QTableWidgetItem(logObject["Apid"].toString()));
-                ui->tableWidget->setItem(row, 6, new QTableWidgetItem(logObject["Ctid"].toString()));
-                ui->tableWidget->setItem(row, 7, new QTableWidgetItem(logObject["Payload"].toString()));
+                QJsonObject loggingObject = jsonObject["logging"].toObject();
+                QStringList logKeys = loggingObject.keys();
+                //rendre en general le nb col et de lig
+                int maxRowCount = 60;
+                int rowCount = qMin(maxRowCount, logKeys.size());
+                ui->tableWidget->setRowCount(rowCount);
+                int columnCount = 8;
+                ui->tableWidget->setColumnCount(columnCount);
 
-                row++;
+                // Set table headers
+                QStringList headerLabels;
+                headerLabels << "Log Key" << "Type" << "Time" << "Time_stamp" << "Ecu_id" << "Apid" << "Ctid" << "Payload";
+                ui->tableWidget->setHorizontalHeaderLabels(headerLabels);
+
+                int row = 0;
+                for (const auto &logKey : logKeys)
+                {
+                    QJsonObject logObject = loggingObject[logKey].toObject();
+                    ui->tableWidget->setItem(row, 0, new QTableWidgetItem(logKey));
+                    ui->tableWidget->setItem(row, 1, new QTableWidgetItem(logObject["Type"].toString()));
+                    ui->tableWidget->setItem(row, 2, new QTableWidgetItem(logObject["Time"].toString()));
+                    ui->tableWidget->setItem(row, 3, new QTableWidgetItem(logObject["Time_stamp"].toString()));
+                    ui->tableWidget->setItem(row, 4, new QTableWidgetItem(logObject["Ecu_id"].toString()));
+                    ui->tableWidget->setItem(row, 5, new QTableWidgetItem(logObject["Apid"].toString()));
+                    ui->tableWidget->setItem(row, 6, new QTableWidgetItem(logObject["Ctid"].toString()));
+                    ui->tableWidget->setItem(row, 7, new QTableWidgetItem(logObject["Payload"].toString()));
+
+                    row++;
+                }
+                // Ajuster la largeur des colonnes en fonction du contenu
+                ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+
             }
-            // Ajuster la largeur des colonnes en fonction du contenu
-            ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-
-        }
         }
     }
 }
 
-/*void MainWindow::actionOpen()
-{
-    QString fileName = QFileDialog::getOpenFileName(this, "Open JSON File", "", "JSON Files (*.json)");
 
-    if (fileName.isEmpty())
-        return;
 
-    ReadJson(fileName);
-    emit jsonFileOpened(fileName);
-}*/
-/*void MainWindow::actionOpen()
-{
-    // Get the selected index from the tree view
-    QModelIndex index = ui->treeView->currentIndex();
+#include <QFileDialog>
+#include <QTextStream>
+#include <QMessageBox>
 
-    // Check if the index is valid and represents a file
-    if (index.isValid() && !dmodel->isDir(index))
-    {
-        // Get the directory path of the double-clicked file
-        QString directoryPath = dmodel->fileInfo(index).absolutePath();
-
-        // Open the file dialog starting from the directory of the double-clicked file
-        QString fileName = QFileDialog::getOpenFileName(this, "Open JSON File", directoryPath, "JSON Files (*.json)");
-
-        if (fileName.isEmpty())
-        return;
-
-        ReadJson(fileName);
-        emit jsonFileOpened(fileName);
-    }
-}*/
 void MainWindow::actionSave()
 {
-    int rowCount = ui->tableWidget->rowCount();
-    int columnCount = ui->tableWidget->columnCount();
+    QString filePath = QFileDialog::getSaveFileName(this, tr("Save CSV File"), QString(), tr("CSV Files (*.csv);;All Files (*)"));
 
-    for (int row = 0; row < rowCount; row++)
+    if (filePath.isEmpty())
+        return; // User cancelled the save dialog
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
-        for (int col = 0; col < columnCount; col++)
+        QMessageBox::critical(this, tr("Error"), tr("Could not open file for writing."));
+        return;
+    }
+
+    QTextStream out(&file);
+
+    int rowCount = ui->filteredTableWidget->rowCount();
+    int columnCount = ui->filteredTableWidget->columnCount();
+
+    for (int row = 0; row < rowCount; ++row)
+    {
+        for (int col = 0; col < columnCount; ++col)
         {
-            QTableWidgetItem *item = ui->tableWidget->item(row, col);
+            QTableWidgetItem *item = ui->filteredTableWidget->item(row, col);
             if (item)
             {
-                qDebug() << "Row:" << row << "Column:" << col << "Value:" << item->text();
+                out << item->text();
+                if (col < columnCount - 1)
+                    out << ","; // Comma separator
             }
         }
+        out << "\n"; // New line after each row
     }
+
+    file.close();
+    QMessageBox::information(this, tr("Save Complete"), tr("CSV file saved successfully."));
 }
+
 
 
 void MainWindow::on_filterButton_clicked()
@@ -507,14 +327,13 @@ void MainWindow::on_filterButton_clicked()
     int columnCount = 8;
     ui->filteredTableWidget->setColumnCount(columnCount);
     int rowCount = ui->tableWidget->rowCount();
-    //int columnCount = ui->tableWidget->columnCount();
     // Set table headers
     QStringList headerLabels;
     headerLabels << "Log Key" << "Type" << "Time" << "Time_stamp" << "Ecu_id" << "Apid" << "Ctid" << "Payload";
     ui->filteredTableWidget->setHorizontalHeaderLabels(headerLabels);
     ui->filteredTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    //creation de filteredLogs:
 
+    //creation de filteredLogs:
     QList<int> filterlist;
 
     // Check if the filterText is empty, which means no filtering is required

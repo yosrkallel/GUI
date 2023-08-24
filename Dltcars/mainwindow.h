@@ -43,13 +43,11 @@ private slots:
 public slots:
     void onLoginAction();
 
+    void applyFilter(const QJsonArray &filteredData);
 
 signals:
     void jsonFileOpened(const QString &path);
     void ecuApidFiltersChangedSignal(const QStringList &ecuFilters, const QStringList &apidFilters);
-private slots:
-
-    void applyFilter(const QJsonArray& filteredData);
 
 
 private:

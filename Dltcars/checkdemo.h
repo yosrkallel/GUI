@@ -21,7 +21,8 @@ public:
     ~CheckDemo();
 
 signals:
-    void ecuApidFiltersChangedSignal(const QJsonArray& filteredData);
+    void ecuApidFiltersChangedSignal(const QJsonArray &filteredLogs);
+
 
 private slots:
 
@@ -29,7 +30,6 @@ private slots:
     void on_checkBox_stateChanged(int arg1);
     void on_checkBox_2_stateChanged(int arg1);
     void on_buttonBox_accepted();
-
 private:
 
     Ui::CheckDemo *ui;

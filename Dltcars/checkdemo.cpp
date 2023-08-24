@@ -10,6 +10,7 @@ CheckDemo::CheckDemo(QWidget *parent) :
     ui(new Ui::CheckDemo)
 {
     ui->setupUi(this);
+    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &CheckDemo::on_buttonBox_accepted);
 
     connect(ui->checkBox, &QCheckBox::stateChanged, this, &CheckDemo::stateSlot);
     connect(ui->checkBox_2, &QCheckBox::stateChanged, this, &CheckDemo::stateSlot);
@@ -20,6 +21,14 @@ CheckDemo::~CheckDemo()
 {
     delete ui;
 }
+struct FilterData
+{
+    QList<QString> ecuIdFilter;
+    QList<QString> appIdFilter;
+    QList<QString> ctidFilters;
+    QList<QString> payloadFilters;
+};
+
 void CheckDemo::on_buttonBox_accepted()
 {
     // Get the checked state of each checkbox
@@ -36,6 +45,8 @@ void CheckDemo::on_buttonBox_accepted()
     QDateTime dateTimeFilter = ui->dateTimeEdit->dateTime(); // Get selected date and time
 
     // Filter JSON data based on selected checkboxes and filter values
+    QJsonObject jsonData;
+
     QJsonArray filteredLogs;
     for (const QString& logKey : jsonData.keys())
     {
@@ -51,9 +62,10 @@ void CheckDemo::on_buttonBox_accepted()
             filteredLogs.append(logObject);
         }
     }
-
-    // Emit a signal with the filtered data to communicate with MainWindow
+    FilterData filters;
+    // Populate filters with appropriate data
     emit ecuApidFiltersChangedSignal(filteredLogs);
+    // Emit a signal with the filtered data to communicate with MainWindow
 }
 
 
@@ -73,6 +85,7 @@ void CheckDemo::stateSlot(int state)
     QStringList ctidFilters;
     QStringList payloadFilters;
 
+    QJsonArray filteredLogs;
 
     // Check the state of each checkbox and add the corresponding filter texts
     if (showEcuChecked)
@@ -80,9 +93,11 @@ void CheckDemo::stateSlot(int state)
     if (showApidChecked)
         appIdFilter << "Filter for Apid"; // Replace with your desired Apid filter text
 
-    // Emit the signal with the filter lists
-    emit ecuApidFiltersChangedSignal(ecuIdFilter, appIdFilter, ctidFilters,payloadFilters);
+
+
+    emit ecuApidFiltersChangedSignal(filteredLogs);
 }
+
 void CheckDemo::setFilterText(const QString &text)
 {
     // Set the text to your line edits or perform filtering logic
